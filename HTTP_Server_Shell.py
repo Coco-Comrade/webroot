@@ -1,6 +1,12 @@
 import os
 import socket
+import logging
 
+"""
+HTTP Server
+Author: Omer Attia
+Date: 1/1/2026
+"""
 QUEUE_SIZE = 10
 IP = '0.0.0.0'
 PORT = 80          # change to 8080 if permission error
@@ -30,9 +36,23 @@ CONTENT_TYPES = {
     "txt": "text/plain",
     "gif": "image/gif",
 }
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("serverwebsite.log", encoding="utf-8"),
+        logging.StreamHandler()
+    ]
+)
 
+log = logging.getLogger("http_server")
 
 def get_file_data(file_name):
+    """
+    Param: file_name – the name of the file that should be read from the server.
+    This function opens the requested file in binary mode and reads its full content.
+    Return: the file’s data as bytes, so it can be sent directly to the client.
+    """""
     """Read file data as bytes."""
     with open(file_name, "rb") as f:
         return f.read()
@@ -61,6 +81,12 @@ def error_page(code, msg):
 
 
 def handle_client_request(resource, client_socket):
+    """
+    Param: resource – the requested URL, client_socket – the socket connected to the client.
+    This function decides which HTTP response should be sent based on the requested resource,
+    including errors, redirects, or a successful file response.
+    Return: None. The response is sent directly to the client through the socket.
+    """""
     if resource == "":
         resource = DEFAULT_URL
 
@@ -127,6 +153,12 @@ def handle_client_request(resource, client_socket):
 
 
 def validate_http_request(request):
+    """"
+    Param: request – the raw HTTP request string received from the client.
+    This function checks that the request is correctly formatted, uses the GET method,
+    and follows the HTTP/1.1 protocol.
+    Return: a tuple containing True/False (request validity) and the requested URL.
+    """""
     if request is None or "\r\n" not in request:
         return False, ""
 
@@ -145,9 +177,7 @@ def validate_http_request(request):
     return True, uri
 
 
-# =========================
-# ✅ ASSERTS – correctness only
-# =========================
+#ASSERTS:
 def _asserts_for_server():
     assert os.path.isdir(ROOT_WEB), "ROOT_WEB directory does not exist"
     assert os.path.isfile(os.path.join(ROOT_WEB, "index.html")), \
@@ -193,7 +223,7 @@ def handle_client(client_socket):
 
 
 def main():
-    # ✅ run correctness checks once
+    #  run correctness checks once
     _asserts_for_server()
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
